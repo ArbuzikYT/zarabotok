@@ -1,0 +1,716 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Рекламное приложение</title>
+    <style>
+         body {
+            font-family: sans-serif;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+             min-height: 100vh;
+            background: linear-gradient(to bottom, #222, #111);
+           color: #eee;
+        }
+         .container {
+            flex: 1;
+            display: flex;
+             flex-direction: column;
+             align-items: center;
+            justify-content: center;
+            padding: 40px;
+        }
+        .balance {
+            font-size: 36px;
+            font-weight: bold;
+             margin-bottom: 30px;
+             color: #bada55;
+            display: flex;
+            align-items: center;
+         }
+        .balance img {
+             width: 30px;
+            height: 30px;
+           margin-right: 10px;
+        }
+         .ad-button {
+            background-color: #2196f3;
+            color: white;
+            padding: 15px 30px;
+            border: none;
+           border-radius: 8px;
+             font-size: 20px;
+             cursor: pointer;
+            transition: background-color 0.3s ease;
+         }
+        .ad-button:hover {
+            background-color: #1976d2;
+        }
+         .bottom-panel {
+            background-color: #333;
+             padding: 15px;
+           display: flex;
+            justify-content: center;
+            gap: 10px;
+        }
+         .bottom-button {
+            background-color: #4CAF50;
+           color: white;
+             padding: 10px 20px;
+           border: none;
+           border-radius: 5px;
+             font-size: 16px;
+            cursor: pointer;
+             transition: background-color 0.3s ease;
+        }
+        .bottom-button:hover {
+            background-color: #45a049;
+       }
+        .modal {
+            display: none;
+             position: fixed;
+           z-index: 1;
+           left: 0;
+             top: 0;
+            width: 100%;
+             height: 100%;
+           overflow: auto;
+            background-color: rgba(0,0,0,0.4);
+        }
+         .modal-content {
+             background: linear-gradient(to bottom, #222, #111);
+            margin: 15% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 600px;
+           border-radius: 10px;
+             text-align: center;
+            color: #eee;
+        }
+         .modal-content img {
+            width: 50px;
+           height: 50px;
+             margin-bottom: 10px;
+         }
+         .close {
+            color: #aaa;
+            float: right;
+           font-size: 28px;
+            font-weight: bold;
+        }
+         .close:hover,
+        .close:focus {
+            color: white;
+            text-decoration: none;
+            cursor: pointer;
+        }
+         #supportMessage {
+           width: 100%;
+             height: 100px;
+            margin-top: 10px;
+             padding: 10px;
+             border-radius: 5px;
+           border: 1px solid #ccc;
+           background-color: #444;
+           color: #fff;
+        }
+         .message-container {
+            margin-top: 10px;
+           max-height: 200px;
+             overflow-y: auto;
+            border: 1px solid #555;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .message {
+            margin-bottom: 10px;
+             padding: 5px;
+            border-radius: 5px;
+       }
+        .message.user {
+            background-color: #333;
+            text-align: right;
+        }
+        .message.admin {
+           background-color: #555;
+            text-align: left;
+        }
+        .auth-input{
+           width: 90%;
+             margin-bottom: 10px;
+            padding: 10px;
+            border: 1px solid #777;
+             background: #444;
+           color: #eee;
+            border-radius: 5px;
+        }
+         .auth-buttons {
+            position: absolute;
+             top: 10px;
+            right: 10px;
+            display: flex;
+             gap: 10px;
+        }
+        .auth-buttons button {
+             display: block;
+        }
+        .hidden {
+             display: none !important;
+       }
+         #notificationArea{
+            text-align: center;
+             margin-bottom: 10px;
+        }
+         .timer-container {
+           position: relative;
+             width: 80px;
+            height: 80px;
+            margin: 20px auto;
+        }
+       .timer-circle {
+           width: 100%;
+            height: 100%;
+             border-radius: 50%;
+           border: 5px solid #2196f3;
+             position: absolute;
+           box-sizing: border-box;
+             transition: stroke-dashoffset 1s linear;
+            transform: rotate(-90deg);
+        }
+         .timer-text {
+            position: absolute;
+             top: 50%;
+            left: 50%;
+           transform: translate(-50%, -50%);
+           font-size: 18px;
+        }
+         .support-icon-button {
+            position: fixed;
+           bottom: 20px;
+            right: 20px;
+            background-color: #4CAF50;
+           color: white;
+             border: none;
+             border-radius: 50%;
+             width: 60px;
+            height: 60px;
+            font-size: 24px;
+            cursor: pointer;
+             display: flex;
+            justify-content: center;
+            align-items: center;
+           z-index: 1000;
+             transition: background-color 0.3s ease;
+       }
+         .support-icon-button:hover {
+           background-color: #45a049;
+        }
+       .support-icon-button img {
+           width: 30px;
+            height: 30px;
+       }
+    </style>
+</head>
+<body>
+    <div class="auth-buttons">
+        <button id="loginButton" class="bottom-button" onclick="openLoginModal()">Войти</button>
+        <button id="registerButton" class="bottom-button" onclick="openRegisterModal()">Зарегестрироваться</button>
+        <button id="logoutButton" class="bottom-button hidden" onclick="logoutUser()">Выйти</button>
+    </div>
+    <div id="appContent" class="hidden">
+        <div class="container">
+            <div class="balance">
+                 <img src="" alt="Арбуз">
+                <span id="userBalance">0.00</span> Арбузов
+            </div>
+           <button class="ad-button" onclick="watchAd()">Смотреть рекламу</button>
+             <div id="timerContainer" class="timer-container hidden">
+               <svg class="timer-circle" width="80" height="80">
+                   <circle class="timer-circle" cx="40" cy="40" r="35" fill="none" stroke-width="5" stroke-dasharray="220" stroke-dashoffset="220"/>
+                </svg>
+                <span id="timerText" class="timer-text">12</span>
+            </div>
+        </div>
+    </div>
+   <div id="notificationArea"></div>
+    <div class="bottom-panel hidden" id="bottomPanel">
+       <button class="bottom-button" onclick="openWithdrawModal()">Вывод</button>
+        <button class="bottom-button" onclick="openPartnerModal()">Партнерка</button>
+        <button class="bottom-button" onclick="openStatsModal()">Статистика</button>
+    </div>
+    <button class="support-icon-button" onclick="openSupportModal()">
+        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS-_yOmcw9Y82nx7CPym75W5_kwLOFcFgCXLQ&s" alt="Поддержка">
+   </button>
+
+    <div id="withdrawModal" class="modal">
+       <div class="modal-content">
+            <span class="close" onclick="closeWithdrawModal()">&times;</span>
+             <h2>Вывод средств</h2>
+           <img src="" alt="Payeer">
+            <p>У вас <span id="modalBalance">0.00</span> Арбузов</p>
+            <p>Обменяйте 2600 Арбузов на 1 Рубль через Payeer</p>
+            <button class="bottom-button" onclick="withdrawFunds()">Вывести 1 рубль</button>
+        </div>
+    </div>
+    
+   <div id="supportModal" class="modal">
+        <div class="modal-content">
+           <span class="close" onclick="closeSupportModal()">&times;</span>
+            <h2>Поддержка</h2>
+            <div id="messageContainer" class="message-container">
+                <!-- Сообщения будут отображаться здесь -->
+            </div>
+            <textarea id="supportMessage" placeholder="Введите ваше сообщение..." rows="4"></textarea>
+             <button class="bottom-button" onclick="sendSupportMessage()">Отправить сообщение</button>
+        </div>
+   </div>
+    
+    <div id="registerModal" class="modal">
+       <div class="modal-content">
+           <span class="close" onclick="closeRegisterModal()">&times;</span>
+            <h2>Регистрация</h2>
+                <input type="text" id="registerLogin" placeholder="Логин" class="auth-input">
+               <input type="password" id="registerPassword" placeholder="Пароль" class="auth-input">
+               <button class="bottom-button" onclick="registerUser()">Зарегестрироваться</button>
+        </div>
+    </div>
+   
+     <div id="loginModal" class="modal">
+       <div class="modal-content">
+           <span class="close" onclick="closeLoginModal()">&times;</span>
+            <h2>Вход</h2>
+                <input type="text" id="loginLogin" placeholder="Логин" class="auth-input">
+               <input type="password" id="loginPassword" placeholder="Пароль" class="auth-input">
+               <button class="bottom-button" onclick="loginUser()">Войти</button>
+       </div>
+    </div>
+   
+    <div id="partnerModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closePartnerModal()">&times;</span>
+            <h2>Партнерская программа</h2>
+           <p>Ваша партнерская ссылка:</p>
+            <div style="display: flex;">
+               <input type="text" id="partnerLink" readonly style="padding: 5px; border: 1px solid #777; margin-right: 5px; background: #444; color: #eee; border-radius: 5px;" onclick="this.select(); document.execCommand('copy');">
+                <button class="bottom-button" onclick="copyPartnerLink()">Копировать</button>
+            </div>
+            <div id="referralList"></div>
+       </div>
+    </div>
+   
+     <div id="statsModal" class="modal">
+         <div class="modal-content">
+           <span class="close" onclick="closeStatsModal()">&times;</span>
+           <h2>Общая статистика</h2>
+            <div id="totalStats">
+                <p>Всего просмотров рекламы: <span id="totalAdsWatched">0</span></p>
+                <p>Всего заработано арбузов: <span id="totalCoinsEarned">0</span></p>
+               <p>Всего заработано в рублях: <span id="totalRublesEarned">0.00</span></p>
+            </div>
+       </div>
+   </div>
+
+    <script>
+        let userBalance = 0.00;
+        const withdrawModal = document.getElementById('withdrawModal');
+         const supportModal = document.getElementById('supportModal');
+        const loginModal = document.getElementById('loginModal');
+       const registerModal = document.getElementById('registerModal');
+         const modalBalance = document.getElementById('modalBalance');
+        const messageContainer = document.getElementById('messageContainer');
+        const appContent = document.getElementById('appContent');
+       const loginButton = document.getElementById('loginButton');
+         const registerButton = document.getElementById('registerButton');
+        const logoutButton = document.getElementById('logoutButton');
+         const bottomPanel = document.getElementById('bottomPanel');
+       const notificationArea = document.getElementById('notificationArea');
+       const timerContainer = document.getElementById('timerContainer');
+        const timerText = document.getElementById('timerText');
+         const adButton = document.querySelector('.ad-button');
+        const partnerModal = document.getElementById('partnerModal');
+        const partnerLink = document.getElementById('partnerLink');
+         const referralList = document.getElementById('referralList');
+        const totalAdsWatchedSpan = document.getElementById('totalAdsWatched');
+        const totalCoinsEarnedSpan = document.getElementById('totalCoinsEarned');
+        const totalRublesEarnedSpan = document.getElementById('totalRublesEarned');
+        const statsModal = document.getElementById('statsModal');
+         let currentUserId = null;
+        let messages = {};
+        let timerInterval = null;
+       let adCooldown = false;
+         let totalAdsWatched = 0;
+        let totalCoinsEarned = 0;
+         
+       function watchAd() {
+            if (adCooldown) {
+               showNotification("Подождите окончания таймера.");
+                 return;
+            }
+             adButton.disabled = true;
+            const chance = Math.random();
+            let reward = 0;
+             if (chance < 0.7) {
+                reward = (Math.random() * (1 - 0.5) + 0.5).toFixed(2);
+            } else {
+                 reward = (Math.random() * (60 - 1) + 1).toFixed(2);
+            }
+            userBalance += parseFloat(reward);
+           if(currentUserId){
+                saveBalance();
+               updateReferralBalances(currentUserId,reward)
+            }
+            document.getElementById("userBalance").innerText = userBalance.toFixed(2);
+             showNotification(`Вы получили ${reward} арбузов за просмотр рекламы!`);
+            totalAdsWatched++;
+             totalCoinsEarned += parseFloat(reward);
+             updateTotalStats();
+
+            timerContainer.classList.remove('hidden');
+            let timeLeft = 12;
+             updateTimerText(timeLeft);
+            const circle = document.querySelector('.timer-circle');
+             circle.style.strokeDashoffset = '220';
+
+           timerInterval = setInterval(() => {
+               timeLeft--;
+               updateTimerText(timeLeft);
+                const offset = 220 * (timeLeft/12);
+                circle.style.strokeDashoffset = offset;
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                     timerContainer.classList.add('hidden');
+                    adButton.disabled = false;
+                   adCooldown = false;
+                }
+           }, 1000);
+             adCooldown = true;
+        }
+       function updateTimerText(timeLeft){
+            timerText.innerText = timeLeft;
+         }
+        function openWithdrawModal() {
+            if (!currentUserId) {
+                showNotification("Пожалуйста, войдите в аккаунт.");
+                return;
+           }
+            modalBalance.innerText = userBalance.toFixed(2);
+             withdrawModal.style.display = "block";
+         }
+
+        function closeWithdrawModal() {
+             withdrawModal.style.display = "none";
+       }
+         function openSupportModal() {
+            if (!currentUserId) {
+                showNotification("Пожалуйста, войдите в аккаунт.");
+                return;
+             }
+            supportModal.style.display = "block";
+            displayMessages();
+       }
+
+        function closeSupportModal() {
+            supportModal.style.display = "none";
+       }
+        
+         function openLoginModal() {
+            loginModal.style.display = "block";
+         }
+
+        function closeLoginModal() {
+            loginModal.style.display = "none";
+        }
+        
+        function openRegisterModal() {
+            registerModal.style.display = "block";
+        }
+
+        function closeRegisterModal() {
+            registerModal.style.display = "none";
+       }
+        
+        function openPartnerModal() {
+             if (!currentUserId) {
+               showNotification("Пожалуйста, войдите в аккаунт.");
+                return;
+            }
+            partnerModal.style.display = "block";
+            displayReferrals();
+        }
+         function closePartnerModal() {
+           partnerModal.style.display = "none";
+        }
+       function openStatsModal() {
+            statsModal.style.display = "block";
+            updateTotalStats();
+        }
+         function closeStatsModal() {
+           statsModal.style.display = "none";
+        }
+         function sendSupportMessage() {
+            const messageText = document.getElementById('supportMessage').value;
+            if (messageText) {
+                addMessage('user', messageText);
+                document.getElementById('supportMessage').value = '';
+                setTimeout(() => {
+                    addMessage('admin', "Спасибо за ваше сообщение! Мы скоро с вами свяжемся.");
+                }, 1000);
+            } else {
+                showNotification("Пожалуйста, введите сообщение.");
+           }
+         }
+       function addMessage(sender, text) {
+            if (!messages[currentUserId]) {
+               messages[currentUserId] = [];
+             }
+             messages[currentUserId].push({ sender: sender, text: text });
+            displayMessages();
+        }
+         function displayMessages() {
+            messageContainer.innerHTML = '';
+            if (messages[currentUserId]) {
+                messages[currentUserId].forEach(message => {
+                    const messageDiv = document.createElement('div');
+                    messageDiv.classList.add('message', message.sender);
+                    messageDiv.innerText = message.text;
+                    messageContainer.appendChild(messageDiv);
+                });
+            }
+         }
+         window.onclick = function(event) {
+            if (event.target == withdrawModal) {
+                withdrawModal.style.display = "none";
+            }
+            if (event.target == loginModal) {
+                 loginModal.style.display = "none";
+            }
+            if (event.target == registerModal) {
+               registerModal.style.display = "none";
+             }
+           if (event.target == partnerModal) {
+                partnerModal.style.display = "none"
+            }
+            if (event.target == statsModal) {
+                statsModal.style.display = "none"
+             }
+       }
+        function withdrawFunds() {
+            if (!currentUserId) {
+                showNotification("Пожалуйста, войдите в аккаунт.");
+                return;
+            }
+            if (userBalance >= 2600) {
+                userBalance -= 2600;
+                 document.getElementById("userBalance").innerText = userBalance.toFixed(2);
+               modalBalance.innerText = userBalance.toFixed(2);
+                showNotification("Вывели 1 рубль");
+                closeWithdrawModal();
+            } else {
+                showNotification("Недостаточно арбузов для вывода");
+           }
+        }
+         function registerUser() {
+            const login = document.getElementById('registerLogin').value;
+           const password = document.getElementById('registerPassword').value;
+            
+           if(login && password) {
+                const users = JSON.parse(localStorage.getItem('users') || '{}');
+                if(users[login]) {
+                     showNotification("Пользователь с таким логином уже существует");
+                    return;
+                 }
+                 const referralLink = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+                users[login] = {
+                     password: password,
+                    balance: 0,
+                     isLoggedIn: true,
+                    referralLink: referralLink,
+                     referrals:[],
+                    referralBalance: 0,
+                    adsWatched: 0,
+                };
+                localStorage.setItem('users', JSON.stringify(users));
+                currentUserId = login;
+                userBalance = 0;
+                 document.getElementById("userBalance").innerText = userBalance.toFixed(2);
+                 appContent.classList.remove('hidden');
+                bottomPanel.classList.remove('hidden');
+                 loginButton.classList.add('hidden');
+                registerButton.classList.add('hidden');
+                logoutButton.classList.remove('hidden');
+                closeRegisterModal();
+                showNotification("Регистрация прошла успешно! Вы автоматически вошли.");
+                saveLoginState(login, password);
+             } else {
+                showNotification("Пожалуйста, заполните все поля.");
+            }
+         }
+         function loginUser() {
+            const login = document.getElementById('loginLogin').value;
+            const password = document.getElementById('loginPassword').value;
+            
+            if(login && password){
+                 const users = JSON.parse(localStorage.getItem('users') || '{}');
+               const user = users[login];
+                if(user && user.password === password) {
+                     currentUserId = login;
+                   userBalance = user.balance || 0;
+                    document.getElementById("userBalance").innerText = userBalance.toFixed(2);
+                    appContent.classList.remove('hidden');
+                    bottomPanel.classList.remove('hidden');
+                    loginButton.classList.add('hidden');
+                     registerButton.classList.add('hidden');
+                     logoutButton.classList.remove('hidden');
+                    closeLoginModal();
+                    saveLoginState(login,password);
+                    showNotification("Вы успешно вошли!");
+                    showPartnerLink();
+                 } else {
+                    showNotification("Неверный логин или пароль.");
+                 }
+           } else {
+                showNotification("Пожалуйста, заполните все поля.");
+            }
+        }
+         function saveBalance(){
+            if (currentUserId) {
+                 const users = JSON.parse(localStorage.getItem('users') || '{}');
+                 if(users[currentUserId]) {
+                   users[currentUserId].balance = userBalance;
+                     localStorage.setItem('users', JSON.stringify(users));
+                }
+             }
+        }
+        function logoutUser(){
+             currentUserId = null;
+            userBalance = 0;
+            document.getElementById("userBalance").innerText = "0.00";
+             appContent.classList.add('hidden');
+             bottomPanel.classList.add('hidden');
+           loginButton.classList.remove('hidden');
+             registerButton.classList.remove('hidden');
+             logoutButton.classList.add('hidden');
+           localStorage.removeItem('currentLogin');
+            localStorage.removeItem('currentPassword');
+             localStorage.removeItem('isLoggedIn');
+       }
+         function saveLoginState(login, password) {
+            localStorage.setItem('currentLogin', login);
+             localStorage.setItem('currentPassword', password);
+            localStorage.setItem('isLoggedIn', true);
+         }
+        window.addEventListener('load', () => {
+            const savedLogin = localStorage.getItem('currentLogin');
+           const savedPassword = localStorage.getItem('currentPassword');
+            const isLoggedIn = localStorage.getItem('isLoggedIn');
+            
+             if (isLoggedIn === "true" && savedLogin && savedPassword) {
+                loginUserWithSavedData(savedLogin,savedPassword);
+            }
+         });
+        function loginUserWithSavedData(login, password) {
+           const users = JSON.parse(localStorage.getItem('users') || '{}');
+             const user = users[login];
+             if (user && user.password === password) {
+                currentUserId = login;
+                 userBalance = user.balance || 0;
+                document.getElementById("userBalance").innerText = userBalance.toFixed(2);
+                 appContent.classList.remove('hidden');
+               bottomPanel.classList.remove('hidden');
+                 loginButton.classList.add('hidden');
+               registerButton.classList.add('hidden');
+                logoutButton.classList.remove('hidden');
+                if(!user.referralLink){
+                    const referralLink = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+                     user.referralLink = referralLink;
+                    localStorage.setItem('users', JSON.stringify(users))
+                }
+                 showPartnerLink();
+           }
+        }
+        function showNotification(message) {
+            notificationArea.innerText = message;
+             setTimeout(() => {
+                notificationArea.innerText = '';
+            }, 3000);
+       }
+        function copyPartnerLink() {
+            partnerLink.select();
+            document.execCommand('copy');
+            showNotification("Ссылка скопирована в буфер обмена")
+         }
+       function displayReferrals() {
+            referralList.innerHTML = '';
+             const users = JSON.parse(localStorage.getItem('users') || '{}');
+           if(users[currentUserId] && users[currentUserId].referrals){
+                const user = users[currentUserId]
+                 partnerLink.value =  window.location.href + "?ref=" + user.referralLink;
+                if (user.referrals.length > 0) {
+                    const ul = document.createElement('ul')
+                   user.referrals.forEach(ref => {
+                       if(users[ref]){
+                            const li = document.createElement('li');
+                            li.innerText = `Пользователь ${ref} : бонус  ${users[ref].referralBalance || 0} арбузов`;
+                            ul.appendChild(li);
+                        }
+                    })
+                    referralList.appendChild(ul);
+                 } else {
+                   referralList.innerText = "У вас пока нет рефералов.";
+                }
+            }
+       }
+         function updateReferralBalances(userId, reward) {
+             const users = JSON.parse(localStorage.getItem('users') || '{}');
+            if(users[userId]){
+                 const user = users[userId];
+                const refLink =  window.location.href + "?ref=" + user.referralLink;
+                const params = new URLSearchParams(window.location.search);
+                const ref = params.get("ref");
+                for(let userRef in users){
+                    if(users[userRef].referralLink == ref){
+                       const referralBalance = parseFloat(reward) * 0.1;
+                        if(users[userRef].referralBalance){
+                            users[userRef].referralBalance = parseFloat(users[userRef].referralBalance) + referralBalance
+                       } else{
+                           users[userRef].referralBalance = referralBalance
+                         }
+                       if(!users[userRef].referrals.includes(userId)){
+                         users[userRef].referrals.push(userId);
+                         }
+                        localStorage.setItem('users', JSON.stringify(users))
+                         break
+                   }
+                 }
+             }
+         }
+        function updateTotalStats() {
+            const users = JSON.parse(localStorage.getItem('users') || '{}');
+            totalAdsWatched = 0;
+           totalCoinsEarned = 0;
+             
+             for (const userId in users) {
+                if (users[userId].balance){
+                  totalCoinsEarned += parseFloat(users[userId].balance);
+                }
+                if(users[userId].adsWatched)
+                {
+                    totalAdsWatched += users[userId].adsWatched;
+                }
+            }
+            totalCoinsEarnedSpan.innerText = totalCoinsEarned.toFixed(2);
+           totalAdsWatchedSpan.innerText = totalAdsWatched;
+            totalRublesEarnedSpan.innerText = (totalCoinsEarned / 2600).toFixed(2);
+         }
+         function showPartnerLink(){
+             const users = JSON.parse(localStorage.getItem('users') || '{}');
+            if(users[currentUserId] && users[currentUserId].referralLink){
+                partnerLink.value =  window.location.href + "?ref=" + users[currentUserId].referralLink;
+           }
+        }
+    </script>
+</body>
+</html>
